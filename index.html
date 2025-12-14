@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DIGIY — Douane Royale</title>
+
+  <style>
+    :root{
+      --bg:#022c22;--bg2:#065f46;--card:#052e16;
+      --accent:#facc15;--text:#e5e7eb;--muted:#9ca3af;
+      --ok:#22c55e;--err:#f97373;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      min-height:100vh;display:flex;align-items:center;justify-content:center;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top,#16a34a22 0,transparent 55%),
+        linear-gradient(135deg,var(--bg),var(--bg2));
+      padding:20px;
+    }
+    .card{
+      width:100%;max-width:520px;
+      background:linear-gradient(145deg,rgba(5,46,22,.97),rgba(6,95,70,.96));
+      border-radius:24px;border:1px solid rgba(15,118,110,.45);
+      padding:24px 20px;text-align:center;
+      box-shadow:0 24px 60px rgba(0,0,0,.75);
+    }
+    .ico{
+      width:56px;height:56px;margin:0 auto 10px;border-radius:50%;
+      display:grid;place-items:center;font-size:24px;font-weight:900;
+      background:
+        radial-gradient(circle at 30% 0,#facc15 0,transparent 55%),
+        radial-gradient(circle at bottom,#16a34a66 0,transparent 60%);
+      color:#022c22;
+      box-shadow:0 0 25px rgba(250,204,21,.45);
+    }
+    h1{font-size:16px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
+    p{font-size:13px;color:var(--muted);line-height:1.5}
+    .status{margin-top:12px;font-size:13px;min-height:18px}
+    .ok{color:var(--ok)} .err{color:var(--err)}
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+  <div class="card">
+    <div class="ico">🦅</div>
+    <h1>DOUANE DIGIY</h1>
+    <p>Contrôle d’accès en cours…</p>
+    <div class="status" id="status"></div>
+  </div>
+
+<script>
+(async function(){
+
+  // ========= CONFIG ROYALE =========
+  const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+
+  const LOGIN_URL = "https://beauville.github.io/digiy-loc-pro-/";
+  const MON_ESPACE_URL = "https://beauville.github.io/mon-espace-digiy/";
+
+  const LINKS = {
+    loc: "https://beauville.github.io/digiy-loc/",
+    driver: "https://beauville.github.io/digiy-driver-client/"
+  };
+
+  // ========= INIT =========
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const statusEl = document.getElementById("status");
+
+  const say = (t,c="")=>{
+    statusEl.className="status "+c;
+    statusEl.textContent=t;
+  };
+  const go = (url)=>window.location.replace(url);
+
+  // ========= SESSION =========
+  const { data: sess } = await client.auth.getSession();
+  if(!sess?.session){
+    say("Non connecté → retour connexion", "err");
+    return go(LOGIN_URL);
+  }
+
+  const { data: userData } = await client.auth.getUser();
+  const user = userData?.user;
+  if(!user){
+    say("Session invalide → retour connexion", "err");
+    return go(LOGIN_URL);
+  }
+
+  say("Session valide ✓ Analyse dossier…", "ok");
+
+  // ========= DOUANE : TABLE pros =========
+  const { data: pro } = await client
+    .from("pros")
+    .select("status, payment_status, is_active, active_modules")
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
+
+  if(pro){
+    const active = pro.is_active === true
+      && pro.status === "active"
+      && (pro.payment_status === "paid" || pro.payment_status === "active");
+
+    if(active){
+      const mods = Array.isArray(pro.active_modules)
+        ? pro.active_modules.map(m=>String(m).toLowerCase())
+        : [];
+
+      // 🔥 Priorité client : LOC → DRIVER
+      if(mods.includes("loc")) return go(LINKS.loc);
+      if(mods.includes("driver")) return go(LINKS.driver);
+
+      return go(MON_ESPACE_URL);
+    }
+
+    // pro existe mais pas encore actif
+    return go(MON_ESPACE_URL);
+  }
+
+  // ========= Fallback : préinscription =========
+  const { data: pre } = await client
+    .from("pre_registrations")
+    .select("modules")
+    .eq("auth_user_id", user.id)
+    .order("created_at",{ascending:false})
+    .limit(1)
+    .maybeSingle();
+
+  if(pre){
+    return go(MON_ESPACE_URL);
+  }
+
+  // ========= Aucun dossier =========
+  say("Aucun dossier trouvé → Mon Espace", "err");
+  return go(MON_ESPACE_URL);
+
+})();
+</script>
+
+</body>
+</html>
