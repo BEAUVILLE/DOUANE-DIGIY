@@ -1,0 +1,210 @@
+# 🦅 DIGIY — README GLOBAL (VISION INTERNE)
+
+⚠️ DOCUMENT STRICTEMENT INTERNE  
+NON DESTINÉ AU PUBLIC • NON MARKETING • NON COMMERCIAL
+
+Ce document définit la **vision**, la **structure**, l’**ordre** et les **principes non négociables** de l’écosystème DIGIY.
+
+---
+
+## 🌍 VISION DIGIY
+
+DIGIY est un **écosystème digital souverain**, enraciné en Afrique,  
+construit pour **autonomiser les communautés locales** sans dépendance aux plateformes extractives.
+
+Principes fondateurs :
+- 0% commission
+- Paiement direct au professionnel
+- Données sous contrôle
+- Outils simples, puissants, respectueux des réalités terrain
+
+DIGIY n’est pas une app.  
+DIGIY est une **infrastructure**.
+
+---
+
+## 🧠 PHILOSOPHIE TECHNIQUE
+
+- Supabase = **identité & données**
+- DIGIY = **logique métier & orientation**
+- Frontend = **interfaces modulaires**
+- Backend lourd = **évité tant que possible**
+
+> Ce qui peut être fait simple doit rester simple.
+
+---
+
+## 🏗️ ARCHITECTURE GLOBALE (ORDRE SACRÉ)
+
+AUTHENTIFICATION (OTP / Supabase)
+↓
+DOUANE DIGIY (Gate Royal)
+↓
+MON ESPACE DIGIY (URL client officielle)
+↓
+MODULES DIGIY
+
+yaml
+Copier le code
+
+⚠️ Cet ordre ne doit **JAMAIS** être inversé.
+
+---
+
+## 🔐 AUTHENTIFICATION
+
+- Méthode : OTP par téléphone (Supabase Auth)
+- SMS provider : Twilio Verify
+- Mode test utilisé en développement
+- Aucune logique métier dans la page de login
+
+La page de login :
+- crée une session
+- redirige vers la DOUANE
+- ne décide de rien
+
+---
+
+## 🛂 DOUANE DIGIY (GATE ROYAL)
+
+Rôle :
+- lire la session
+- lire les données métier
+- décider de l’orientation
+
+La Douane :
+- n’affiche rien
+- ne crée rien
+- ne modifie rien
+
+Elle **décide uniquement**.
+
+Priorité actuelle des modules :
+1. DIGIY LOC
+2. DIGIY DRIVER
+3. Sinon → Mon Espace DIGIY
+
+---
+
+## 🏛️ MON ESPACE DIGIY
+
+Fonction :
+- URL officielle communiquée au client
+- preuve d’existence de l’espace partenaire
+- point d’attente / d’information / de réassurance
+
+Mon Espace :
+- vérifie la session
+- affiche le statut
+- n’oriente pas
+- ne remplace pas le HUB final
+
+---
+
+## 🧩 MODULES DIGIY (LISTE)
+
+Modules actuels / prévus :
+
+- DIGIY LOC — hébergement / location
+- DIGIY DRIVER — transport / chauffeur
+- DIGIY RESTO — restauration
+- DIGIY POS / MARKET — commerce
+- DIGIY PAY — paiement direct
+- DIGIY JOBS — emploi & services terrain
+- DIGIY EXPLORE — sorties & lieux
+- DIGIY STYLE — artisans & créateurs
+- DIGIY STORE PRO — outils commerçants
+- DIGIY LANGUE — langues locales & UX
+- SAP DIGIYLYFE — couche métier avancée (long terme)
+
+Chaque module :
+- est indépendant
+- peut évoluer seul
+- respecte la logique DOUANE → ESPACE → MODULE
+
+---
+
+## 🗄️ DONNÉES (SUPABASE)
+
+Tables cœur :
+- `pros` → source de vérité partenaire
+- `pre_registrations` → fallback
+- `payments_wave` → paiements directs
+- `notifications` → messages internes
+- `kyc / kyb` → à venir
+
+Règle :
+> La donnée est écrite **une fois**, lue **partout**.
+
+---
+
+## 💸 PAIEMENT
+
+- Modèle : paiement direct au pro
+- Méthodes terrain :
+  - Wave (prioritaire)
+  - Orange Money / autres (selon pays)
+- Aucun prélèvement DIGIY automatique
+- Activation contrôlée par statut
+
+---
+
+## 🔒 SÉCURITÉ & SOBRIÉTÉ
+
+- Pas de secrets côté frontend
+- Clé Supabase = publique uniquement
+- Pas de dépendance inutile
+- Pas de framework imposé
+
+DIGIY privilégie :
+- la lisibilité
+- la maintenance
+- la transmission
+
+---
+
+## 🧭 STRATÉGIE DE DÉPLOIEMENT
+
+- Tests : France + Sénégal
+- Langues : FR → Wolof → EN
+- Déploiement progressif par ville
+- Alliances locales avant volume
+
+Le modèle franchise / licence est prévu,
+mais **pas prioritaire** tant que la base n’est pas solide.
+
+---
+
+## 🦅 ÉTHIQUE DIGIY
+
+- Pas d’exploitation
+- Pas de dépendance forcée
+- Pas de promesse non tenue
+- Pas de croissance au détriment du terrain
+
+DIGIY construit **lentement mais juste**.
+
+---
+
+## ⚠️ RÈGLES INTERNES NON NÉGOCIABLES
+
+- Ne jamais casser l’ordre AUTH → DOUANE → ESPACE → MODULE
+- Ne jamais promettre une URL qui n’existe pas
+- Ne jamais forcer un paiement sans valeur réelle
+- Ne jamais complexifier sans raison
+
+---
+
+## 📜 TRANSMISSION
+
+Ce document existe pour :
+- éviter les dérives
+- garder la vision intacte
+- transmettre DIGIY sans le dénaturer
+
+> DIGIY n’est pas un produit jetable.  
+> C’est une œuvre structurée.
+
+---
+
+FIN — README GLOBAL DIGIY (INTERNE)
