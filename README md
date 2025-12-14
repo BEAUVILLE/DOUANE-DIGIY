@@ -1,0 +1,60 @@
+# 🦅 DOUANE DIGIY — GATE ROYAL
+
+La **Douane DIGIY** est la **porte souveraine** de l’écosystème DIGIY.  
+Elle décide **où un utilisateur authentifié peut aller**, selon son statut réel (compte, paiement, modules).
+
+> **Supabase authentifie.  
+> DIGIY oriente.**
+
+---
+
+## 🎯 Rôle de la Douane DIGIY
+
+La Douane intervient **après la connexion (OTP)** et **avant toute page métier**.
+
+Elle permet de :
+- ✅ Vérifier qu’une **session Supabase est active**
+- ✅ Lire le **statut partenaire** (table `pros`)
+- ✅ Appliquer les **règles métier DIGIY**
+- ✅ Rediriger automatiquement vers :
+  - un **module**
+  - **Mon Espace DIGIY**
+  - ou la **page de connexion**
+
+---
+
+## 🧭 Règles d’orientation actuelles
+
+### 🔐 1. Pas connecté
+➡️ Redirection vers la page de connexion OTP
+
+### 🟡 2. Connecté mais compte non actif
+➡️ Redirection vers **Mon Espace DIGIY**
+
+### 🟢 3. Compte actif + modules
+Priorité métier définie :
+
+1. **DIGIY LOC**
+2. **DIGIY DRIVER**
+3. Sinon → **Mon Espace DIGIY**
+
+---
+
+## 🗺️ URLs officielles utilisées
+
+- 🔐 Connexion OTP  
+  `https://beauville.github.io/digiy-loc-pro-/`
+
+- 🏛️ Mon Espace DIGIY (URL client officielle)  
+  `https://beauville.github.io/mon-espace-digiy/`
+
+- 🏠 DIGIY LOC  
+  `https://beauville.github.io/digiy-loc/`
+
+- 🚗 DIGIY DRIVER  
+  `https://beauville.github.io/digiy-driver-client/`
+
+---
+
+## 🧱 Architecture DIGIY (ordre sacré)
+
