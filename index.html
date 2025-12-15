@@ -93,51 +93,83 @@
     return go(LOGIN_URL);
   }
 
-  say("Session valide ✓ Analyse dossier…", "ok");
+  say("Session valide ✓ Contrôle DIGIY…", "ok");
 
-  // ========= DOUANE : TABLE pros =========
-  const { data: pro } = await client
+  // ========= DOUANE : PROS =========
+  const { data: pro, error: proErr } = await client
     .from("pros")
-    .select("status, payment_status, is_active, active_modules")
+    .select("id, status, payment_status, is_active, active_modules")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
-  if(pro){
-    const active = pro.is_active === true
-      && pro.status === "active"
-      && (pro.payment_status === "paid" || pro.payment_status === "active");
-
-    if(active){
-      const mods = Array.isArray(pro.active_modules)
-        ? pro.active_modules.map(m=>String(m).toLowerCase())
-        : [];
-
-      // 🔥 Priorité client : LOC → DRIVER
-      if(mods.includes("loc")) return go(LINKS.loc);
-      if(mods.includes("driver")) return go(LINKS.driver);
-
-      return go(MON_ESPACE_URL);
-    }
-
-    // pro existe mais pas encore actif
+  if(proErr){
+    // si ta RLS bloque ou autre, on renvoie proprement au mon espace
     return go(MON_ESPACE_URL);
   }
 
-  // ========= Fallback : préinscription =========
+  if(pro){
+    // 1) vérif statut / paiement global (ancienne logique)
+    const baseActive = pro.is_active === true
+      && String(pro.status || "").toLowerCase() === "active"
+      && ["paid","active"].includes(String(pro.payment_status || "").toLowerCase());
+
+    // si même la base n’est pas active → mon espace
+    if(!baseActive) return go(MON_ESPACE_URL);
+
+    // 2) KYB obligatoire
+    say("KYB…", "ok");
+    const { data: kyb } = await client
+      .from("kyb_cases")
+      .select("status")
+      .eq("pro_id", pro.id)
+      .order("created_at",{ ascending:false })
+      .limit(1)
+      .maybeSingle();
+
+    if(!kyb || String(kyb.status || "").toLowerCase() !== "kyb_approved"){
+      return go(MON_ESPACE_URL);
+    }
+
+    // 3) Paiement confirmé obligatoire (Wave)
+    say("Paiement…", "ok");
+    const { data: pay } = await client
+      .from("payments_wave")
+      .select("status")
+      .eq("pro_id", pro.id)
+      .order("created_at",{ ascending:false })
+      .limit(1)
+      .maybeSingle();
+
+    if(!pay || String(pay.status || "").toLowerCase() !== "confirmed"){
+      return go(MON_ESPACE_URL);
+    }
+
+    // 4) Modules : priorité LOC → DRIVER
+    say("Accès validé ✓ Redirection…", "ok");
+    const mods = Array.isArray(pro.active_modules)
+      ? pro.active_modules.map(m=>String(m||"").toLowerCase())
+      : [];
+
+    if(mods.includes("loc")) return go(LINKS.loc);
+    if(mods.includes("driver")) return go(LINKS.driver);
+
+    return go(MON_ESPACE_URL);
+  }
+
+  // ========= fallback pre_registrations =========
   const { data: pre } = await client
     .from("pre_registrations")
-    .select("modules")
+    .select("id")
     .eq("auth_user_id", user.id)
     .order("created_at",{ascending:false})
     .limit(1)
     .maybeSingle();
 
-  if(pre){
-    return go(MON_ESPACE_URL);
-  }
+  // dossier existe → mon espace
+  if(pre) return go(MON_ESPACE_URL);
 
-  // ========= Aucun dossier =========
-  say("Aucun dossier trouvé → Mon Espace", "err");
+  // rien trouvé → mon espace (qui gère message + inscription)
+  say("Dossier introuvable → Mon Espace", "err");
   return go(MON_ESPACE_URL);
 
 })();
